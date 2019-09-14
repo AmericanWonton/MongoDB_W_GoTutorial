@@ -1,0 +1,102 @@
+db.posts2.insert({
+	title: 'Post One',
+	body: 'Body of Post One',
+	category: 'News',
+	likes: 4,
+	tags: ['news', 'events'],
+	user: {
+		name: 'John Doe',
+		status: 'author'
+		},
+	date: Date()
+})
+
+db.posts2.insertMany([
+	{
+	title: 'Post Two',
+	body: 'Body of post two',
+	category: 'Technology',
+	date: Date()
+	},
+	{
+	title: 'Post Three',
+	body: 'Body of post three',
+	category: 'News',
+	date: Date()
+	},
+	{
+	title: 'Post Four',
+	body: 'Body of post three',
+	category: 'Entertainment',
+	date: Date()
+	}
+])
+
+//Method 1 of updating
+db.posts2.update({ title: 'Post Four' },
+	{
+	title: 'Post Four',
+	body: 'New post 4 body',
+	date: Date()
+	},
+	{
+	upsert: true
+	}
+)
+//Method 2 of updating
+db.posts2.update({ title: 'Post Four'},
+{
+	$set: {
+		body: 'Body of Post',
+		category: 'Technology'
+	}
+}
+)
+//Document inside a Document
+db.posts2.update({ title: 'Post One'},
+{
+	$set: {
+		comments: [
+		{
+			user: 'Mary Williams',
+			body: 'Comment One',
+			date: Date()
+		},
+		{
+			user: 'Harry White',
+			body: 'Comment Two',
+			date: Date()
+		}
+	]
+	}
+}
+)
+//How to find all the 'Documents' with a certain field.
+db.posts2.find({
+	comments: {
+	$elemMatch: {
+		user: 'Mary Williams'
+}
+}
+})
+
+//How to search for documents with an 'indexed' fields
+db.posts2.find({
+	$text: {
+	  $search: "\"Post 0\""
+	}
+}).pretty()
+
+db.posts2.find({	$text: {	$search: "\ "Post T\""	} }).pretty()
+
+//Greater than operator
+db.posts2.find({ views: {$gt:3 } })
+//Greater than or equal two operator
+db.posts2.find({ views: {$gte:6 } })
+//Less than Operator
+db.posts2.find({ views: {$lt:6 } }).pretty()
+//Less than or equal to operator
+db.posts2.find({ views: {$lte:6 } }).pretty()
+
+
+
