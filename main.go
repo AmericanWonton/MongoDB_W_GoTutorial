@@ -1,25 +1,25 @@
 package main
 
 import (
-    "context"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
 
-    "go.mongodb.org/mongo-driver/bson"
-    "go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // You will be using this Trainer type later in the program
 type Trainer struct {
-    Name string
-    Age  int
-    City string
+	Name string
+	Age  int
+	City string
 }
 
 func main() {
 	// Rest of the code will go here
-	
+
 	// Set client options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
@@ -91,6 +91,12 @@ func main() {
 	fmt.Printf("Found a single document: %+v\n", result)
 
 	//Here's how to find and assign multiple Documents using a cursor
+	// Pass these options to the Find method
+	findOptions := options.Find()
+	findOptions.SetLimit(2)
+
+	// Here's an array in which you can store the decoded documents
+	var results []*Trainer
 	// Passing bson.D{{}} as the filter matches all documents in the collection
 	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
 	if err != nil {
@@ -100,7 +106,7 @@ func main() {
 	// Finding multiple documents returns a cursor
 	// Iterating through the cursor allows us to decode documents one at a time
 	for cur.Next(context.TODO()) {
-		
+
 		// create a value into which the single document can be decoded
 		var elem Trainer
 		err := cur.Decode(&elem)
@@ -120,13 +126,15 @@ func main() {
 
 	fmt.Printf("Found multiple documents (array of pointers): %+v\n", results)
 
-	//Here's how to delete MULTIPLE documents
-	deleteResult, err := collection.DeleteMany(context.TODO(), bson.D{{}})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Deleted %v documents in the trainers collection\n", deleteResult.DeletedCount)
+	/*
+		//Here's how to delete MULTIPLE documents
+		deleteResult, err := collection.DeleteMany(context.TODO(), bson.D{{}})
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Deleted %v documents in the trainers collection\n", deleteResult.DeletedCount)
 
+	*/
 	//This closes connection to the Mongo DB
 	err = client.Disconnect(context.TODO())
 
@@ -134,6 +142,5 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("Connection to MongoDB closed.")
-
 
 }
