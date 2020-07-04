@@ -1,0 +1,11 @@
+Notes:
+
+Installation INstructions:
+https://www.udemy.com/course/go-programming-language/learn/lecture/6477024#overview
+
+Whatever drive you install it on, you need to create the following directory:
+data/db
+
+Also, you should run it at that drive.
+
+To check if everything works, run: mongod

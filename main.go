@@ -53,6 +53,7 @@ func main() {
 
 	if err != nil {
 		log.Fatal(err)
+		fmt.Printf("Error connecting to database: %v\n", err)
 	}
 
 	// Check the connection
@@ -60,6 +61,7 @@ func main() {
 
 	if err != nil {
 		log.Fatal(err)
+		fmt.Printf("Error connecting to database: %v\n", err)
 	}
 
 	fmt.Println("Connected to MongoDB!")
@@ -178,7 +180,7 @@ func main() {
 
 	//Here's how to update a document with a filter 'BSON' Json object
 	filter := bson.D{{"name", "Ash"}}
-	filter2 := bson.D{{"Firstname", "Jimmy"}} //Our new BSON object.
+	filter2 := bson.D{{"firstname", "Carl"}} //Our new BSON object.
 
 	update := bson.D{
 		{"$inc", bson.D{
@@ -186,9 +188,9 @@ func main() {
 		}},
 	}
 
-	update2 := bson.D{ //Our value that's being updated.
+	update2 := bson.D{
 		{"$set", bson.D{
-			{"firstname", "Thanos Boy"},
+			{"firstname", "BigG Thanos"},
 		}},
 	}
 
@@ -197,7 +199,7 @@ func main() {
 		log.Fatal(err)
 	}
 	//Our new UpdateResult
-	updateResult2, err2 := collection2.UpdateOne(context.TODO(), filter, update2)
+	updateResult2, err2 := collection2.UpdateOne(context.TODO(), filter2, update2)
 
 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult2.MatchedCount, updateResult2.ModifiedCount)
@@ -291,5 +293,4 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("Connection to MongoDB closed.")
-
 }
