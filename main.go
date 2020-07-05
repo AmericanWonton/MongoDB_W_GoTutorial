@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 // You will be using this Trainer type later in the program
@@ -42,255 +44,155 @@ type citizen struct {
 	Currentaddress address `json:"Currentaddress"`
 }
 
+type icecream struct {
+	Flavor   string  `json:"Flavor"`
+	Calories float64 `json:"Calories"`
+	Name     string  `json:"Name"`
+	Alias    string  `json:"Alias"`
+}
+
 func main() {
-	// Rest of the code will go here
-
-	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-
-	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-
+	//Setup Mongo connection to Atlas Cluster
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://joek:superduperPWord@superdbcluster.kswud.mongodb.net/superdbtest1?retryWrites=true&w=majority"))
 	if err != nil {
 		log.Fatal(err)
-		fmt.Printf("Error connecting to database: %v\n", err)
 	}
-
-	// Check the connection
-	err = client.Ping(context.TODO(), nil)
-
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
 	if err != nil {
 		log.Fatal(err)
-		fmt.Printf("Error connecting to database: %v\n", err)
 	}
-
-	fmt.Println("Connected to MongoDB!")
-	//Here is an example DB,(and a personel Database to try with it, collection2)
-	collection := client.Database("test").Collection("trainers")
-
-	collection2 := client.Database("newGoLangDB").Collection("citizens") //Example 2
-
-	//Here are some example 'Trainer' Structs that will go into our DB,(and some examples)
-	ash := Trainer{"Ash", 10, "Pallet Town"}
-	misty := Trainer{"Misty", 10, "Cerulean City"}
-	brock := Trainer{"Brock", 15, "Pewter City"}
-
-	/*Example Test Structs
-	 */
-	address1 := address{
-		Zipcode:    63129,
-		Streetname: "Big City Street",
-		Province:   "Provinceville State",
-		Country:    "United States istan",
+	defer client.Disconnect(ctx) //Disconnect in 10 seconds if you can't connect
+	//Double check to see if we've connected to the database
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		log.Fatal(err)
 	}
-	address2 := address{
-		Zipcode:    64556,
-		Streetname: "Ugly Town Ville",
-		Province:   "The Bible Belt State",
-		Country:    "Middle Eastern Country",
+	//List all available databases
+	databases, err := client.ListDatabaseNames(ctx, bson.M{})
+	if err != nil {
+		log.Fatal(err)
 	}
-	address3 := address{
-		Zipcode:    33412,
-		Streetname: "Ugly Street",
-		Province:   "Newer Rebuilt New York",
-		Country:    "A Country",
-	}
+	fmt.Println(databases)
+	//Insert 1 data
+	insertData(client)
+	//Insert ALOT of data
+	insertMultipleData(client)
+	//Update Document
+	dataUpdateAll(client)
+	//Get Document
+	retrieveData(client)
+	//Get Multiple Document
+	retrieveMultipleData(client)
+	//Delete Multiple Documents
+	deleteDocs(client)
+}
 
-	citizen1 := citizen{
-		Firstname:      "Jimmy",
-		Lastname:       "Bobby",
-		Ethnicity:      "Black",
-		Skincolor:      "Greay",
-		Age:            56,
-		SS:             456321456,
-		Origincountry:  "Pakistanistan",
-		Sex:            'M',
-		Gender:         "Bi-directional",
-		Citizennumber:  70647837586331888,
-		Employedhere:   false,
-		Employeenum:    52108560147860712,
-		Currentaddress: address3,
-	}
-
-	citizen2 := citizen{
-		Firstname:      "Carl",
-		Lastname:       "Jr.",
-		Ethnicity:      "White",
-		Skincolor:      "Middle Eastern",
-		Age:            22,
-		SS:             456589456,
-		Origincountry:  "Countryville",
-		Sex:            'F',
-		Gender:         "Ugly",
-		Citizennumber:  44534444,
-		Employedhere:   false,
-		Employeenum:    223223,
-		Currentaddress: address2,
-	}
-	citizen3 := citizen{
-		Firstname:      "Beamus",
-		Lastname:       "theThird.",
-		Ethnicity:      "A color",
-		Skincolor:      "Red",
-		Age:            88,
-		SS:             996589456,
-		Origincountry:  "Origin Country",
-		Sex:            'f',
-		Gender:         "Cute boy",
-		Citizennumber:  333,
-		Employedhere:   true,
-		Employeenum:    21,
-		Currentaddress: address1,
-	}
-
+func insertData(client *mongo.Client) {
+	ic_collection := client.Database("superdbtest1").Collection("icecreams")      //Here's our collection
+	testInsertion := icecream{"test flavor", 800, "The Test Cone", "Tester Cone"} //Test Document insertion
 	//Here's how to insert a single document into our DB
-	insertResult, err := collection.InsertOne(context.TODO(), ash)
+	insertResult, err := ic_collection.InsertOne(context.TODO(), testInsertion)
 	if err != nil {
 		log.Fatal(err)
 		println(err)
 	}
 
 	fmt.Println("Inserted a single document: ", insertResult.InsertedID)
+}
 
-	//Here's our inserted first Citizen...
-	insertResult2, err2 := collection2.InsertOne(context.TODO(), citizen1)
-	if err2 != nil {
-		log.Fatal(err2)
-		println(err2)
-	}
-	fmt.Println("Inserted a single document: ", insertResult2.InsertedID)
-	//Here's how to insert MULTIPLE Documents into a DB
-	trainers := []interface{}{misty, brock}
-	citizens := []interface{}{citizen2, citizen3}
-
-	insertManyResult, err := collection.InsertMany(context.TODO(), trainers)
+func insertMultipleData(client *mongo.Client) {
+	ic_collection := client.Database("superdbtest1").Collection("icecreams")               //Here's our collection
+	testInsertion := icecream{"test flavor the one", 800, "The Test Cone", "Tester Cone"}  //Test Document insertion 1
+	testInsertion2 := icecream{"test flavor the two", 800, "The Test Cone", "Tester Cone"} //Test Document insertion 1
+	theIceCream := []interface{}{testInsertion, testInsertion2}                            //The Interface of Data
+	//Insert Our Data
+	insertManyResult, err := ic_collection.InsertMany(context.TODO(), theIceCream)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs) //Data insert results
+}
 
-	insertManyResult3, err3 := collection2.InsertMany(context.TODO(), citizens)
-
-	if err3 != nil {
-		log.Fatal(err3)
-		fmt.Println(err3)
-	}
-
-	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs)
-	fmt.Println("Inserted multiple documents: ", insertManyResult3.InsertedIDs)
-
+func dataUpdateAll(client *mongo.Client) {
 	//Here's how to update a document with a filter 'BSON' Json object
-	filter := bson.D{{"name", "Ash"}}
-	filter2 := bson.D{{"firstname", "Carl"}} //Our new BSON object.
+	ic_collection := client.Database("superdbtest1").Collection("icecreams") //Here's our collection
 
-	update := bson.D{
-		{"$inc", bson.D{
-			{"age", 1},
-		}},
-	}
+	filter := bson.D{{"flavor", "test flavor the one"}} //Here's our filter to look for
 
-	update2 := bson.D{
+	update := bson.D{ //Here is our data to update
 		{"$set", bson.D{
-			{"firstname", "BigG Thanos"},
+			{"flavor", "raw sewage"},
 		}},
 	}
 
-	updateResult, err := collection.UpdateOne(context.TODO(), filter, update)
+	updateResult, err := ic_collection.UpdateMany(context.TODO(), filter, update)
 	if err != nil {
 		log.Fatal(err)
 	}
 	//Our new UpdateResult
-	updateResult2, err2 := collection2.UpdateOne(context.TODO(), filter2, update2)
-
 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
-	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult2.MatchedCount, updateResult2.ModifiedCount)
+}
 
+func retrieveData(client *mongo.Client) {
 	//Here's how to find a single document and apply it to a struct.
-	var result Trainer
-	var result2 citizen //Here's our example Citizen to find.
+	ic_collection := client.Database("superdbtest1").Collection("icecreams") //Here's our collection
+	var result icecream
+	filter := bson.D{{"flavor", "raw sewage"}} //Here's our filter to look for
 
-	err = collection.FindOne(context.TODO(), filter).Decode(&result)
+	err := ic_collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err2 = collection.FindOne(context.TODO(), filter2).Decode(&result2)
-	if err2 != nil {
-		log.Fatal(err2)
-		fmt.Println(err2)
-	}
-
 	fmt.Printf("Found a single document: %+v\n", result)
-	fmt.Printf("I also Found a single document: %+v\n", result2)
+}
 
+func retrieveMultipleData(client *mongo.Client) {
+	ic_collection := client.Database("superdbtest1").Collection("icecreams") //Here's our collection
+	filter := bson.D{{"flavor", "raw sewage"}}                               //Here's our filter to look for
 	//Here's how to find and assign multiple Documents using a cursor
 	// Pass these options to the Find method
 	findOptions := options.Find()
 	findOptions.SetLimit(2)
 
-	findOptions2 := options.Find() //These are our citizen finds
-	findOptions2.SetLimit(2)
-
 	// Here's an array in which you can store the decoded documents
-	var results []*Trainer
-	var results2 []*citizen
+	var results []icecream
 	// Passing bson.D{{}} as the filter matches all documents in the collection
-	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
+	cur, err := ic_collection.Find(context.TODO(), filter, findOptions)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	cur2, err4 := collection2.Find(context.TODO(), bson.D{{}}, findOptions2) //Finding our citizen
-	if err4 != nil {
-		log.Fatal(err4)
-		fmt.Println(err4)
 	}
 
 	// Finding multiple documents returns a cursor
 	// Iterating through the cursor allows us to decode documents one at a time
 	for cur.Next(context.TODO()) {
 		// create a value into which the single document can be decoded
-		var elem Trainer
+		var elem icecream
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		results = append(results, &elem)
+		results = append(results, elem)
 	}
-
 	if err := cur.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	for cur2.Next(context.TODO()) { //Loop over our second Citizens cursor
-		var elem2 citizen
-		err := cur.Decode(&elem2)
-		if err != nil {
-			log.Fatal(err)
-			fmt.Println(err)
-		}
-		results2 = append(results2, &elem2)
-	}
-
 	// Close the cursor once finished
 	cur.Close(context.TODO())
-	cur2.Close(context.TODO()) //Close our citizen cursor
 
-	fmt.Printf("Found multiple documents (array of pointers): %+v\n", results)
-	fmt.Printf("Found multiple documents (array of pointers): %+v\n", results2)
+	fmt.Printf("Found multiple documents: %+v\n", results)
+}
 
+func deleteDocs(client *mongo.Client) {
+	ic_collection := client.Database("superdbtest1").Collection("icecreams") //Here's our collection
+	filter := bson.D{{"flavor", "raw sewage"}}                               //Here's our filter to look for
 	//Here's how to delete MULTIPLE documents
-	deleteResult, err := collection.DeleteMany(context.TODO(), bson.D{{}})
+	deleteResult, err := ic_collection.DeleteMany(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Deleted %v documents in the trainers collection\n", deleteResult.DeletedCount)
-
-	//This closes connection to the Mongo DB
-	err = client.Disconnect(context.TODO())
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Connection to MongoDB closed.")
+	fmt.Printf("Deleted %v documents in the icecream collection\n", deleteResult.DeletedCount)
 }
