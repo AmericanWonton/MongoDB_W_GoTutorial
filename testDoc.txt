@@ -21,6 +21,7 @@ In Atlas, to create databases and collections, go to 'collections'...the rest is
 You credentials should be in lastpass
 
 To connect to a DB in Atlas from Command line, type this:
+(Note! To connect to MongoAtlas DB, you need to set up a USer with ReadWrite permisssions, NOT AN ADMIN)
 (Might need to do it in Mongo command line here:
 D:\mongoshell\mongodb-shell-win32-x86_64-2012plus-4.2.8\mongodb-win32-x86_64-2012plus-4.2.8\bin)
 mongo "mongodb+srv://superdbcluster.kswud.mongodb.net/" superdbtest1 --username joek -pwd incorrectpassword1 (replace with db)
@@ -29,6 +30,9 @@ mongodb+srv://joek:superduperPWord@superdbcluster.kswud.mongodb.net/superdbtest1
 
 Good Mongo CRUD Docs:
 https://www.mongodb.com/blog/post/quick-start-golang--mongodb--how-to-update-documents
+
+How to bulk Insert/Delete/Update stuff:
+https://vkt.sh/go-mongodb-driver-cookbook/
 
 
 //Old Example for this Project(Done on localhost)
