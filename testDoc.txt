@@ -24,7 +24,9 @@ To connect to a DB in Atlas from Command line, type this:
 (Note! To connect to MongoAtlas DB, you need to set up a USer with ReadWrite permisssions, NOT AN ADMIN)
 (Might need to do it in Mongo command line here:
 D:\mongoshell\mongodb-shell-win32-x86_64-2012plus-4.2.8\mongodb-win32-x86_64-2012plus-4.2.8\bin)
-mongo "mongodb+srv://superdbcluster.kswud.mongodb.net/" superdbtest1 --username joek -pwd incorrectpassword1 (replace with db)
+Also, be careful about spacing in the command line...it can be REALLY particiular...
+mongo "mongodb+srv://superdbcluster.kswud.mongodb.net/<dbname>" --username <username>
+mongo "mongodb+srv://superdbcluster.kswud.mongodb.net/superdbtest1" --username bigjohnny -pwd figleafs (replace with db)
 For Application Connection:
 mongodb+srv://joek:superduperPWord@superdbcluster.kswud.mongodb.net/superdbtest1?retryWrites=true&w=majority
 

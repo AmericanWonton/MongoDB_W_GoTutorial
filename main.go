@@ -128,7 +128,7 @@ func main() {
 
 	//retrieveData(client) //Get Document
 
-	//retrieveMultipleData(client) //Get Multiple Document
+	retrieveMultipleData(client) //Get Multiple Document
 
 	//deleteDocs(client)//Delete Multiple Documents
 	//Test for Other Projects
@@ -136,7 +136,7 @@ func main() {
 	//testDeleteCertainItems(client)
 	//testUpdateCertainItems(client)
 	//testBigDelete(client)
-	testBigFind(client)
+	//testBigFind(client)
 
 	fmt.Println()
 	fmt.Println()
@@ -240,15 +240,17 @@ func retrieveData(client *mongo.Client) {
 }
 
 func retrieveMultipleData(client *mongo.Client) {
-	ic_collection := client.Database("superdbtest1").Collection("icecreams") //Here's our collection
-	filter := bson.D{{"calories", 800}}                                      //Here's our filter to look for
+	ic_collection := client.Database("superdbtest1").Collection("hamburgers") //Here's our collection
+	//filter := bson.D{{}}                                                     //Here's our filter to look for
+	filter := bson.M{"userid": 3510735}
 	//Here's how to find and assign multiple Documents using a cursor
 	// Pass these options to the Find method
 	findOptions := options.Find()
-	findOptions.SetLimit(2)
+	//findOptions.SetLimit()
 
 	// Here's an array in which you can store the decoded documents
-	var results []icecream
+	//var results []icecream
+	var results []MongoHamburger
 	// Passing bson.D{{}} as the filter matches all documents in the collection
 	cur, err := ic_collection.Find(context.TODO(), filter, findOptions)
 	if err != nil {
@@ -259,7 +261,7 @@ func retrieveMultipleData(client *mongo.Client) {
 	// Iterating through the cursor allows us to decode documents one at a time
 	for cur.Next(context.TODO()) {
 		// create a value into which the single document can be decoded
-		var elem icecream
+		var elem MongoHamburger
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
