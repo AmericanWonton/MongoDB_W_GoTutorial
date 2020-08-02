@@ -128,42 +128,57 @@ func main() {
 
 	//retrieveData(client) //Get Document
 
-	retrieveMultipleData(client) //Get Multiple Document
+	//retrieveMultipleData(client) //Get Multiple Document
 
 	//deleteDocs(client)//Delete Multiple Documents
+
 	//Test for Other Projects
 	//testFindUser(client)
 	//testDeleteCertainItems(client)
 	//testUpdateCertainItems(client)
+	//testUpdateAnotherItemSet(client)
+	//testReplace(client)
 	//testBigDelete(client)
 	//testBigFind(client)
 
 	fmt.Println()
 	fmt.Println()
 
-	var anything []interface{}
-	var stringList []string
-	var anArray []int
-	stringList = append(stringList, "first word")
-	stringList = append(stringList, "Second word")
-	stringList = append(stringList, "Third Word")
-	anArray = append(anArray, 1, 2, 3)
-	for _, val := range stringList {
-		anything = append(anything, val)
-	}
-	for _, val := range anArray {
-		anything = append(anything, val)
-	}
+	a := []string{"A", "B", "C", "D", "E"}
+	i := 2
 
-	updateInterfaces := []interface{}{}
-	updateInterfaces = append(updateInterfaces, stringList, anArray)
+	// Remove the element at index i from a.
+	copy(a[i:], a[i+1:]) // Shift a[i+1:] left one index.
+	a[len(a)-1] = ""     // Erase last element (write zero value).
+	a = a[:len(a)-1]     // Truncate slice.
 
-	fmt.Println(anything[4])
-	fmt.Println(updateInterfaces)
-	fmt.Println(updateInterfaces[0])
-	anInterface := updateInterfaces[1]
-	fmt.Println(updateInterfaces[1])
-	fmt.Printf("Here is anInterface: %v\n", anInterface)
+	fmt.Println(a) // [A B D E]
+
+	/*
+		var anything []interface{}
+		var stringList []string
+		var anArray []int
+		stringList = append(stringList, "first word")
+		stringList = append(stringList, "Second word")
+		stringList = append(stringList, "Third Word")
+		anArray = append(anArray, 1, 2, 3)
+		for _, val := range stringList {
+			anything = append(anything, val)
+		}
+		for _, val := range anArray {
+			anything = append(anything, val)
+		}
+
+		updateInterfaces := []interface{}{}
+		updateInterfaces = append(updateInterfaces, stringList, anArray)
+
+		fmt.Println(anything[4])
+		fmt.Println(updateInterfaces)
+		fmt.Println(updateInterfaces[0])
+		anInterface := updateInterfaces[1]
+		fmt.Println(updateInterfaces[1])
+		fmt.Printf("Here is anInterface: %v\n", anInterface)
+	*/
 }
 
 func insertData(client *mongo.Client) {
@@ -196,7 +211,7 @@ func dataUpdateAll(client *mongo.Client) {
 	//Here's how to update a document with a filter 'BSON' Json object
 	ic_collection := client.Database("superdbtest1").Collection("icecreams") //Here's our collection
 
-	filter := bson.D{{"flavor", "test flavor the one"},
+	filter := bson.D{{"flavor", "test flavor"},
 		{"alias", "Tester Cone"}} //Here's our filter to look for
 
 	update := bson.D{ //Here is our data to update
@@ -290,7 +305,7 @@ func deleteDocs(client *mongo.Client) {
 }
 
 func testFindUser(client *mongo.Client) {
-	idString := "57324802"
+	idString := "38116436"
 	theID, _ := strconv.Atoi(idString)
 	user_collection := client.Database("superdbtest1").Collection("users")
 	filterUserID := bson.D{{"userid", theID}}
@@ -405,34 +420,131 @@ func testUpdateCertainItems(client *mongo.Client) {
 	}
 }
 
-func testBigDelete(client *mongo.Client) {
-	var theIDS []int
-	theIDS = append(theIDS, 50177074, 12228170)
-	var bsonArrayFilters []bson.M
-	deleteInterfaces := []interface{}{}
-	/*
-		for p := 0; p < len(theIDS); p++ {
-			filter := bson.D{{"userid", theIDS[p]}}
-			deleteInterfaces = append(deleteInterfaces, filter)
-		}
-	*/
-
-	filter := bson.M{"userid": 12228170}
-	bsonArrayFilters = append(bsonArrayFilters, filter)
-	deleteInterfaces = append(deleteInterfaces, bsonArrayFilters)
-	myDeleteInterface := deleteInterfaces[0]
-	fmt.Printf("Here is our myDeleteInterface: %v\n", myDeleteInterface)
-	hotdog_collection := client.Database("superdbtest1").Collection("hotdogs") //Here's our collection
-	//Here's how to delete MULTIPLE documents
-	for z := 0; z < len(theIDS); z++ {
-		deleteResult, err := hotdog_collection.DeleteMany(context.TODO(), myDeleteInterface)
-		if err != nil {
-			fmt.Printf("There was an error deleting hotdogs: %v\n", err)
-			log.Fatal(err)
-		} else {
-			fmt.Printf("Deleted %v documents in the hotdog collection\n", deleteResult.DeletedCount)
-		}
+func testUpdateAnotherItemSet(client *mongo.Client) {
+	theTimeNow := time.Now()
+	newHotDog := MongoHotDog{
+		HotDogType:  "Benis",
+		Condiments:  []string{"Memes", "deadass"},
+		Name:        "The memedog",
+		FoodID:      25457483,
+		UserID:      48828181,
+		DateCreated: theTimeNow.Format("2006-01-02 15:04:05"),
+		DateUpdated: theTimeNow.Format("2006-01-02 15:04:05"),
 	}
+	//Here's how to update a document with a filter 'BSON' Json object
+	ic_collection := client.Database("superdbtest1").Collection("hotdogs") //Here's our collection
+
+	filter := bson.D{{"foodid", newHotDog.FoodID},
+		{"userid", newHotDog.UserID}} //Here's our filter to look for
+
+	update := bson.D{ //Here is our data to update
+		{"$set", bson.D{
+			{"hotdogtype", newHotDog.HotDogType},
+		}},
+		{"$set", bson.D{
+			{"condiments", newHotDog.Condiments},
+		}},
+		{"$set", bson.D{
+			{"calories", newHotDog.Calories},
+		}},
+		{"$set", bson.D{
+			{"name", newHotDog.Name},
+		}},
+		{"$set", bson.D{
+			{"dateupdated", newHotDog.DateUpdated},
+		}},
+	}
+
+	updateResult, err := ic_collection.UpdateMany(context.TODO(), filter, update)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//Our new UpdateResult
+	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
+}
+
+func testReplace(client *mongo.Client) {
+	theTimeNow := time.Now()
+	newHotDog := MongoHotDog{
+		HotDogType:  "Fart",
+		Condiments:  []string{"Stank", "Ass"},
+		Calories:    1000,
+		Name:        "The FartDog",
+		FoodID:      85773082,
+		UserID:      18537102,
+		DateCreated: theTimeNow.Format("2006-01-02 15:04:05"),
+		DateUpdated: theTimeNow.Format("2006-01-02 15:04:05"),
+	}
+	//Here's how to update a document with a filter 'BSON' Json object
+	ic_collection := client.Database("superdbtest1").Collection("hotdogs") //Here's our collection
+	theFilter := bson.M{
+		"foodid": bson.M{
+			"$eq": newHotDog.FoodID, // check if bool field has value of 'false'
+		},
+		"userid": bson.M{
+			"$eq": newHotDog.UserID, // check if bool field has value of 'false'
+		},
+	}
+	updatedDocument := bson.M{
+		"$set": bson.M{
+			"hotdogtype":  newHotDog.HotDogType,
+			"condiments":  newHotDog.Condiments,
+			"calories":    newHotDog.Calories,
+			"name":        newHotDog.Name,
+			"foodid":      newHotDog.FoodID,
+			"userid":      newHotDog.UserID,
+			"datecreated": newHotDog.DateCreated,
+			"dateupdated": newHotDog.DateUpdated,
+		},
+	}
+	result, err := ic_collection.UpdateOne(
+		context.TODO(),
+		theFilter,
+		updatedDocument,
+	)
+	if err != nil {
+		fmt.Printf("There was an error replacing one of our documents: %v\n", err.Error())
+		log.Printf("%v\n", err)
+	}
+	fmt.Printf("Replaced %v Documents! Beacuse it matched %v documents! We had the following FoodID andUserID: %v,%v\n",
+		result.ModifiedCount, result.MatchedCount, newHotDog.FoodID, newHotDog.UserID)
+
+	//Update User account too
+
+}
+
+func testBigDelete(client *mongo.Client) {
+	theFoodDeletion := MongoHotDog{
+		HotDogType: "Benis",
+		FoodID:     26324244,
+		UserID:     80756757,
+	}
+	hotdogCollection := client.Database("superdbtest1").Collection("hotdogs") //Here's our collection
+	deletes := []bson.M{
+		{"UserID": theFoodDeletion.UserID},
+	} //Here's our filter to look for
+	deletes = append(deletes, bson.M{"UserID": bson.M{
+		"$eq": theFoodDeletion.UserID,
+	}}, bson.M{"foodid": bson.M{
+		"$eq": theFoodDeletion.FoodID,
+	}},
+	)
+
+	// create the slice of write models
+	var writes []mongo.WriteModel
+
+	for _, del := range deletes {
+		model := mongo.NewDeleteManyModel().SetFilter(del)
+		writes = append(writes, model)
+	}
+
+	// run bulk write
+	res, err := hotdogCollection.BulkWrite(context.TODO(), writes)
+	if err != nil {
+		fmt.Printf("Error deleting hotdogs: %v\n", err.Error())
+	}
+	//Print Results
+	fmt.Printf("Deleted the following documents: %v\n", res.DeletedCount)
 }
 
 func testBigFind(client *mongo.Client) {
